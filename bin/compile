@@ -9,24 +9,7 @@ unset GIT_DIR     # Avoid GIT_DIR leak from previous build steps
 
 #===============================
 # R
-shopt -s extglob
 
-function error() {
-  echo " !     $*" >&2
-  exit 1
-}
-
-function indent() {
-  c='s/^/       /'
-  case $(uname) in
-    Darwin) sed -l "$c";;
-    *)      sed -u "$c";;
-  esac
-}
-
-function read_var() {
-  echo $(head -n 1 $1)
-}
 # R
 #==============================
 ### Constants
@@ -47,10 +30,6 @@ $BP_DIR/compile-extensions/bin/check_buildpack_version $BP_DIR $CACHE_DIR
 #===============================
 # R
 
-R_CACHE_DIR="$2/vendor"
-LP_DIR=`cd $(dirname $0); cd ..; pwd`
-BUILDPACK_DIR="$(dirname $(dirname $0))"
-GCC_VERSION=4.8
 
 # R
 #==============================
@@ -221,6 +200,32 @@ summarize_build | output "$LOG_FILE"
 
 #=============================
 # R
+
+
+shopt -s extglob
+
+function error() {
+  echo " !     $*" >&2
+  exit 1
+}
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
+function read_var() {
+  echo $(head -n 1 $1)
+}
+
+
+R_CACHE_DIR="$2/vendor"
+LP_DIR=`cd $(dirname $0); cd ..; pwd`
+BUILDPACK_DIR="$(dirname $(dirname $0))"
+GCC_VERSION=4.8
 
 # fix STACK variable if unset
 if [ -z "${STACK}" ];
