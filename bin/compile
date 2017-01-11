@@ -2,7 +2,7 @@
 # bin/compile <build-dir> <cache-dir> <env-dir>
 
 set -e
-3 set -o pipefail   # dont ignore exit codes when piping output
+# set -o pipefail   # dont ignore exit codes when piping output
 # set -o nounset    # fail on unset variables
 unset GIT_DIR     # Avoid GIT_DIR leak from previous build steps
 
