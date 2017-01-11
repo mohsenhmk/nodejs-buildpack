@@ -1,6 +1,190 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir> <env-dir>
 
+
+
+# fail fast
+set -e
+
+# debug
+# set -x
+
+shopt -s extglob
+
+function error() {
+  echo " !     $*" >&2
+  exit 1
+}
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
+function read_var() {
+  echo $(head -n 1 $1)
+}
+
+# clean up leaking environment
+unset GIT_DIR
+
+# parse and derive params
+BUILD_DIR=$1
+CACHE_DIR="$2/vendor"
+LP_DIR=`cd $(dirname $0); cd ..; pwd`
+BUILDPACK_DIR="$(dirname $(dirname $0))"
+GCC_VERSION=4.8
+
+# fix STACK variable if unset
+if [ -z "${STACK}" ];
+then
+  STACK="cedar-14"
+fi
+
+# config
+
+# read in R version if file exists
+if [[ -f $BUILD_DIR/.r-version ]]; then
+  R_VERSION=`read_var $BUILD_DIR/.r-version`
+else
+  #R_VERSION="3.2.4" Latest buildpack has bugs with shiny per https://github.com/virtualstaticvoid/heroku-buildpack-r/issues/56.  Use older version of R that is compatible
+  R_VERSION="3.2.1"
+
+fi
+
+# read in buildback binary version if file exists
+if [[ -f $BUILD_DIR/.r-buildpack-version ]]; then
+  BUILD_PACK_VERSION=`read_var $BUILD_DIR/.r-buildpack-version`
+else
+  #BUILD_PACK_VERSION="20160322-0811" Latest buildpack has bugs with shiny per https://github.com/virtualstaticvoid/heroku-buildpack-r/issues/56.  Use older version of buildpack that is compatible
+  BUILD_PACK_VERSION="20150719-0045" 
+fi
+
+S3_BUCKET="heroku-buildpack-r"
+R_BINARIES="http://${S3_BUCKET}.s3.amazonaws.com/${STACK}/R-${R_VERSION}-binaries-${BUILD_PACK_VERSION}.tar.gz"
+
+VENDOR_DIR="$BUILD_DIR/vendor"
+CRAN_MIRROR="http://cran.revolutionanalytics.com"
+
+mkdir -p $CACHE_DIR
+
+# vendor R into the slug
+echo "Vendoring R $R_VERSION for $STACK stack ($BUILD_PACK_VERSION)" | indent
+
+# download and unpack binaries
+echo "Downloading and unpacking R binaries ($R_BINARIES)" | indent
+curl $R_BINARIES -s -o - | tar xzf - -C $BUILD_DIR
+
+# also using buildpack-apt?
+if [ -d $BUILD_DIR/.apt ]; then
+  cp -r $VENDOR_DIR/.apt/ $BUILD_DIR
+else
+  mv $VENDOR_DIR/.apt/ $BUILD_DIR
+fi
+
+
+
+
+
+# need to copy the binaries to /app/vendor so that R works when compiling packages
+
+mkdir -p /app/.apt
+
+
+
+
+
+
+
+# source "$BUILDPACK_DIR/bin/installgfortran.sh" -d "/app/vendor/R/bin/gfortran" "4.8"
+
+LP_DIR=`cd $(dirname $0); cd ..; pwd`
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+echo "Updating apt caches"
+
+APT_CACHE_DIR="$CACHE_DIR/apt/cache"
+APT_STATE_DIR="$CACHE_DIR/apt/state"
+mkdir -p "$APT_CACHE_DIR/archives/partial"
+mkdir -p "$APT_STATE_DIR/lists/partial"
+APT_OPTIONS="-o debug::nolocking=true -o dir::cache=$APT_CACHE_DIR -o dir::state=$APT_STATE_DIR"
+apt-get $APT_OPTIONS update | indent
+apt-get $APT_OPTIONS -y --force-yes -d install --reinstall gfortran | indent
+
+# apt-get $APT_OPTIONS -y --force-yes -d install --reinstall libv8-dev | indent
+cp $BUILD_DIR/pandoc.deb $APT_CACHE_DIR/archives/
+for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
+  echo "Installing $(basename $DEB)"
+  dpkg -x $DEB $BUILD_DIR/.apt/
+done
+
+# echo "findstuf"
+# cd $BUILD_DIR/.apt/
+# ls -R | grep libv8
+
+
+
+
+cp -R $BUILD_DIR/.apt/* /app/.apt
+
+mkdir -p /app/vendor/R
+cp -R $VENDOR_DIR/R/* /app/vendor/R
+
+uname -a
+
+# trialed and errored on this; copy over libs to gfortran, so
+# that liblto_plugin.so and others can be found
+# (tried using LDFLAGS, LD_LIBRARY_PATH and LIBRARY_PATH but didn't work)
+
+cp -R /usr/lib/gcc/x86_64-linux-gnu/$GCC_VERSION/* /app/.apt/usr/lib/gcc/x86_64-linux-gnu/$GCC_VERSION
+# cp /usr/lib/gcc/x86_64-linux-gnu/$GCC_VERSION/liblto_plugin.so /app/.apt/usr/lib/gcc/x86_64-linux-gnu/$GCC_VERSION/liblto_plugin.so
+
+# set environment variables, needed for compiling packages
+source "$BUILDPACK_DIR/bin/r_environment.sh"
+# copy over environment
+mkdir -p $BUILD_DIR/.profile.d
+cp "$BUILDPACK_DIR/bin/r_environment.sh" "$BUILD_DIR/.profile.d/r_environment.sh"
+
+# prevent warnings when building packages
+mkdir -p /app/vendor/R/lib64/R/doc/html
+touch /app/vendor/R/lib64/R/doc/html/R.css
+
+
+# install dependencies from CRAN
+echo $CF_STAGING_TIMEOUT
+echo "Executing init.r script" | indent
+
+# set the CRAN mirror and run the init.r program
+/app/vendor/R/bin/R -s <<RPROG > indent
+  Sys.setenv(BUILD_DIR="$BUILD_DIR")
+  print(.libPaths())
+  .libPaths("$BUILD_DIR")
+  print(.libPaths())
+  setwd("$BUILD_DIR")
+  r <- getOption("repos");
+  r["CRAN"] <- "$CRAN_MIRROR";
+  options(repos=r);
+  `cat $BUILD_DIR/init.r`
+RPROG
+
+echo "R $R_VERSION successfully installed" | indent
+
+# need to copy binaries back so that any
+# installed packages are included in the slug
+rm -rf $VENDOR_DIR/R
+mkdir -p $VENDOR_DIR/R
+cp -R /app/vendor/R/* $VENDOR_DIR/R
+
+# ===========================================
 set -e
 set -o pipefail   # dont ignore exit codes when piping output
 set -o nounset    # fail on unset variables
