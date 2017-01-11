@@ -227,11 +227,9 @@ LP_DIR=`cd $(dirname $0); cd ..; pwd`
 BUILDPACK_DIR="$(dirname $(dirname $0))"
 GCC_VERSION=4.8
 
-# fix STACK variable if unset
-if [ -z "${STACK}" ];
-then
-  STACK="cedar-14"
-fi
+
+STACK="cedar-14"
+
 
 # config
 
