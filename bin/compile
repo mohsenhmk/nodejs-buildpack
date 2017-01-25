@@ -71,7 +71,8 @@ CRAN_MIRROR="http://cran.revolutionanalytics.com"
 
 mkdir -p $CACHE_DIR
 echo $BUILD_DIR
-cd /home/vcap/app/shiny-server/tmp
+ls /home/vcap
+cd /home/vcap/shiny-server/tmp
 # vendor R into the slug
 echo "Vendoring R $R_VERSION for $STACK stack ($BUILD_PACK_VERSION)" | indent
 
