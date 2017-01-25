@@ -45,8 +45,7 @@ then
 fi
 
 # config
-cd /home/vcap/app/
-ls
+
 # read in R version if file exists
 if [[ -f $BUILD_DIR/.r-version ]]; then
   R_VERSION=`read_var $BUILD_DIR/.r-version`
@@ -71,7 +70,7 @@ VENDOR_DIR="$BUILD_DIR/vendor"
 CRAN_MIRROR="http://cran.revolutionanalytics.com"
 
 mkdir -p $CACHE_DIR
-
+echo "build dir: $BUILD_DIR"
 # vendor R into the slug
 echo "Vendoring R $R_VERSION for $STACK stack ($BUILD_PACK_VERSION)" | indent
 
