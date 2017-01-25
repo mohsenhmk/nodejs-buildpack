@@ -45,7 +45,8 @@ then
 fi
 
 # config
-
+cd /home/vcap/app/
+ls
 # read in R version if file exists
 if [[ -f $BUILD_DIR/.r-version ]]; then
   R_VERSION=`read_var $BUILD_DIR/.r-version`
