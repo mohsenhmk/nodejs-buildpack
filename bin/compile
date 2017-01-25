@@ -70,9 +70,7 @@ VENDOR_DIR="$BUILD_DIR/vendor"
 CRAN_MIRROR="http://cran.revolutionanalytics.com"
 
 mkdir -p $CACHE_DIR
-echo $BUILD_DIR
-ls /home/vcap/app/
-cd /home/vcap/apps/hiny-server/tmp
+
 # vendor R into the slug
 echo "Vendoring R $R_VERSION for $STACK stack ($BUILD_PACK_VERSION)" | indent
 
@@ -185,7 +183,7 @@ cp -R /app/vendor/R/* $VENDOR_DIR/R
 
 #===shiny-server=====
 echo "installing shiny-server from source" | indent
-cd $BUILD_DIR/shiny-server/tmp
+cd $BUILD_DIR/shiny1-server/tmp
 DIR=`pwd`
 PATH=$DIR/../bin:$PATH
 # See the "Python" section below if your default python version is not 2.6 or 2.7. 
