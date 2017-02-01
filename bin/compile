@@ -190,7 +190,7 @@ ls -R
 rm -rf $VENDOR_DIR/R
 mkdir -p $VENDOR_DIR/R
 cp -R /app/vendor/* $VENDOR_DIR
-
+cp "$BUILDPACK_DIR/bin/R" /home/vcap/app/.apt/usr/bin/R/bin
 
 # ===========================================
 set -e
