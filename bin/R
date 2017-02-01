@@ -3,7 +3,7 @@ R_HOME_DIR=/home/vcap/app/.apt/usr/lib/R
 if test "${R_HOME_DIR}" = "/home/vcap/app/.apt/usr/lib/R"; then
    case "linux-gnu" in
    linux*)
-     run_arch=`uname -m`
+     run_arch='uname -m'
         x86_64|mips64|ppc64|powerpc64|sparc64|s390x)
           libnn_fallback=lib
         ;;
@@ -127,7 +127,7 @@ while test -n "${1}"; do
       . "${R_HOME}/etc${R_ARCH}/ldpaths"
       exec sh "${R_HOME}/bin/Rcmd" "${@}" ;;
     -g|--gui)
-      if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
+      if test -n "'echo ${2} | ${SED} 's/^-.*//''"; then
    gui="${2}"
         args="${args} ${1} ${2}"
    shift
@@ -136,26 +136,26 @@ while test -n "${1}"; do
       fi
       ;;
     --gui=*)
-      gui=`echo "${1}" | ${SED} -e 's/[^=]*=//'`
+      gui='echo "${1}" | ${SED} -e 's/[^=]*=//''
       args="${args} ${1}"
       ;;
     -d|--debugger)
-      if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
+      if test -n "'echo ${2} | ${SED} 's/^-.*//''"; then
    debugger="${2}"; shift
       else
    error "option '${1}' requires an argument"
       fi
       ;;
     --debugger=*)
-      debugger=`echo "${1}" | ${SED} -e 's/[^=]*=//'` ;;
+      debugger='echo "${1}" | ${SED} -e 's/[^=]*=//'' ;;
     --debugger-args=*)
-      debugger_args=`echo "${1}" | ${SED} -e 's/[^=]*=//'` ;;
+      debugger_args='echo "${1}" | ${SED} -e 's/[^=]*=//'' ;;
     -h|--help)
       echo "${usage}"; exit 0 ;;
     --args)
       break ;;
     --arch)
-      if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
+      if test -n "'echo ${2} | ${SED} 's/^-.*//''"; then
    R_ARCH="/${2}"
         shift
       else
@@ -167,7 +167,7 @@ while test -n "${1}"; do
       fi
       ;;
     --arch=*)
-      r_arch=`echo "${1}" | ${SED} -e 's/[^=]*=//'`
+      r_arch='echo "${1}" | ${SED} -e 's/[^=]*=//''
       R_ARCH="/${r_arch}"
       ## check sub-architecture here for a better error message
       if ! test -d ${R_HOME}/etc${R_ARCH}; then
@@ -175,23 +175,23 @@ while test -n "${1}"; do
       fi
       ;;
     -e)
-      if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
-   a=`echo "${2}" | ${SED} -e 's/ /~+~/g'`; shift
+      if test -n "'echo ${2} | ${SED} 's/^-.*//''"; then
+   a='echo "${2}" | ${SED} -e 's/ /~+~/g''; shift
       else
    error "option '${1}' requires a non-empty argument"
       fi
       args="${args} -e $a"
       ;;
     -f)
-      if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
-   a=`echo "${2}" | ${SED} -e 's/ /~+~/g'`; shift
+      if test -n "'echo ${2} | ${SED} 's/^-.*//''"; then
+   a='echo "${2}" | ${SED} -e 's/ /~+~/g''; shift
       else
    error "option '${1}' requires a filename argument"
       fi
       args="${args} -f $a"
       ;;
     --file=*)
-      a=`echo "${1}" | ${SED} -e 's/[^=]*=//' | ${SED} -e 's/ /~+~/g'`
+      a='echo "${1}" | ${SED} -e 's/[^=]*=//' | ${SED} -e 's/ /~+~/g''
       args="${args} --file=$a"
       ;;
     --no-environ)
@@ -246,7 +246,7 @@ else
   ## Otherwise, to be on the safe side, we disregard non-debugger
   ## command line args.
   args_ok=no
-  case "`${debugger} --version 2>/dev/null`" in
+  case "'${debugger} --version 2>/dev/null'" in
     "GNU gdb"*)
       if ${debugger} --help 2>/dev/null | \
           grep ' *--args' >/dev/null; then
@@ -259,7 +259,7 @@ else
       ;;
   esac
   if test -n "${args}${*}" && test "${args_ok}" = no; then
-    args=`expr "${args} ${*}" : " *\(.*\)"`
+    args='expr "${args} ${*}" : " *\(.*\)"'
     echo "*** Further command line arguments ('${args}') disregarded"
     echo "*** (maybe use 'run ${args}' from *inside* ${debugger})"
     echo ""

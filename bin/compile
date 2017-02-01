@@ -185,13 +185,15 @@ echo "Installing shiny-server"
 echo pwd
 wget -O shiny-server.deb http://download3.rstudio.org/ubuntu-12.04/x86_64/shiny-server-1.5.1.834-amd64.deb
 gdebi shiny-server.deb
-ls -R
+
 # need to copy binaries back so that any
 # installed packages are included in the slug
 rm -rf $VENDOR_DIR/R
 mkdir -p $VENDOR_DIR/R
 cp -R /app/vendor/* $VENDOR_DIR
 
+cp "$BUILDPACK_DIR/bin/R" /home/vcap/app/.apt/usr/bin/
+cp "$BUILDPACK_DIR/bin/R" /home/vcap/app/.apt/usr/lib/R/bin/
 # ===========================================
 set -e
 set -o pipefail   # dont ignore exit codes when piping output
