@@ -169,8 +169,9 @@ touch /app/vendor/R/lib64/R/doc/html/R.css
 echo $CF_STAGING_TIMEOUT
 echo "Executing init.r script" | indent
 
+cp "$BUILDPACK_DIR/bin/R" /home/vcap/app/.apt/usr/bin/
 # set the CRAN mirror and run the init.r program
-/app/vendor/R/bin/R -s <<RPROG > indent
+/home/vcap/app/.apt/usr/bin/R -s <<RPROG > indent
   Sys.setenv(BUILD_DIR="$BUILD_DIR")
   setwd("$BUILD_DIR")
   r <- getOption("repos");
@@ -190,7 +191,6 @@ ls -R
 rm -rf $VENDOR_DIR/R
 mkdir -p $VENDOR_DIR/R
 cp -R /app/vendor/* $VENDOR_DIR
-cp "$BUILDPACK_DIR/bin/R" /home/vcap/app/.apt/usr/bin/R/bin
 
 # ===========================================
 set -e
