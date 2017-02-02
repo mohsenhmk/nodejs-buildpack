@@ -41,33 +41,33 @@ BUILDPACK_DIR="$(dirname $(dirname $0))"
 GCC_VERSION=4.8
 
 # fix STACK variable if unset
-#if [ -z "${STACK}" ];
-#then
-#  STACK="cedar-14"
-#fi
+if [ -z "${STACK}" ];
+then
+  STACK="cedar-14"
+fi
 
 
 # config
 
 # read in R version if file exists
-#if [[ -f $BUILD_DIR/.r-version ]]; then
-#  R_VERSION=`read_var $BUILD_DIR/.r-version`
-#else
-#  #R_VERSION="3.2.4" Latest buildpack has bugs with shiny per https://github.com/virtualstaticvoid/heroku-buildpack-r/issues/56.  Use older version of R that is compatible
-#  R_VERSION="3.2.1"
+if [[ -f $BUILD_DIR/.r-version ]]; then
+  R_VERSION=`read_var $BUILD_DIR/.r-version`
+else
+  #R_VERSION="3.2.4" Latest buildpack has bugs with shiny per https://github.com/virtualstaticvoid/heroku-buildpack-r/issues/56.  Use older version of R that is compatible
+  R_VERSION="3.2.1"
 
-#fi
+fi
 
 # read in buildback binary version if file exists
-#if [[ -f $BUILD_DIR/.r-buildpack-version ]]; then
-#  BUILD_PACK_VERSION=`read_var $BUILD_DIR/.r-buildpack-version`
-#else
+if [[ -f $BUILD_DIR/.r-buildpack-version ]]; then
+  BUILD_PACK_VERSION=`read_var $BUILD_DIR/.r-buildpack-version`
+else
   #BUILD_PACK_VERSION="20160322-0811" Latest buildpack has bugs with shiny per https://github.com/virtualstaticvoid/heroku-buildpack-r/issues/56.  Use older version of buildpack that is compatible
-#  BUILD_PACK_VERSION="20150719-0045" 
-#fi
+  BUILD_PACK_VERSION="20150719-0045" 
+fi
 
-#S3_BUCKET="heroku-buildpack-r"
-#R_BINARIES="http://${S3_BUCKET}.s3.amazonaws.com/${STACK}/R-${R_VERSION}-binaries-${BUILD_PACK_VERSION}.tar.gz"
+S3_BUCKET="heroku-buildpack-r"
+R_BINARIES="http://${S3_BUCKET}.s3.amazonaws.com/${STACK}/R-${R_VERSION}-binaries-${BUILD_PACK_VERSION}.tar.gz"
 
 VENDOR_DIR="$BUILD_DIR/vendor"
 CRAN_MIRROR="http://cran.revolutionanalytics.com"
@@ -75,11 +75,11 @@ CRAN_MIRROR="http://cran.revolutionanalytics.com"
 mkdir -p $CACHE_DIR
 
 # vendor R into the slug
-#echo "Vendoring R $R_VERSION for $STACK stack ($BUILD_PACK_VERSION)" | indent
+echo "Vendoring R $R_VERSION for $STACK stack ($BUILD_PACK_VERSION)" | indent
 
 # download and unpack binaries
-#echo "Downloading and unpacking R binaries ($R_BINARIES)" | indent
-#curl $R_BINARIES -s -o - | tar xzf - -C $BUILD_DIR
+echo "Downloading and unpacking R binaries ($R_BINARIES)" | indent
+curl $R_BINARIES -s -o - | tar xzf - -C $BUILD_DIR
 
 # also using buildpack-apt?
 if [ -d $BUILD_DIR/.apt ]; then
@@ -125,7 +125,6 @@ apt-get $APT_OPTIONS -y --force-yes -d install --reinstall gfortran | indent
 apt-get $APT_OPTIONS -y --force-yes -d install --reinstall python3-apt | indent
 apt-get $APT_OPTIONS -y --force-yes -d install --reinstall libssl0.9.8 | indent
 apt-get $APT_OPTIONS -y --force-yes -d install --reinstall gdebi-core | indent
-apt-get $APT_OPTIONS -y --force-yes -d install --reinstall r-base | indent
 # apt-get $APT_OPTIONS -y --force-yes -d install --reinstall libv8-dev | indent
 # cp $BUILD_DIR/pandoc.deb $APT_CACHE_DIR/archives/
 for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
@@ -169,9 +168,8 @@ touch /app/vendor/R/lib64/R/doc/html/R.css
 echo $CF_STAGING_TIMEOUT
 echo "Executing init.r script" | indent
 
-cp "$BUILDPACK_DIR/bin/R" /home/vcap/app/.apt/usr/bin/
 # set the CRAN mirror and run the init.r program
-/home/vcap/app/.apt/usr/bin/R -s <<RPROG > indent
+/app/vendor/R/bin/R -s <<RPROG > indent
   Sys.setenv(BUILD_DIR="$BUILD_DIR")
   setwd("$BUILD_DIR")
   r <- getOption("repos");
@@ -182,18 +180,15 @@ RPROG
 
 echo "R $R_VERSION successfully installed" | indent
 echo "Installing shiny-server"
-echo pwd
 wget -O shiny-server.deb http://download3.rstudio.org/ubuntu-12.04/x86_64/shiny-server-1.5.1.834-amd64.deb
 gdebi shiny-server.deb
-
 # need to copy binaries back so that any
 # installed packages are included in the slug
 rm -rf $VENDOR_DIR/R
 mkdir -p $VENDOR_DIR/R
 cp -R /app/vendor/* $VENDOR_DIR
 
-cp "$BUILDPACK_DIR/bin/R" /home/vcap/app/.apt/usr/bin/
-cp "$BUILDPACK_DIR/bin/R" /home/vcap/app/.apt/usr/lib/R/bin/
+
 # ===========================================
 set -e
 set -o pipefail   # dont ignore exit codes when piping output
