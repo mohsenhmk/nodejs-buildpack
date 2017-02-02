@@ -12,7 +12,8 @@
 # set -x
 
 shopt -s extglob
-
+echo "who am I"
+whoami
 function error() {
   echo " !     $*" >&2
   exit 1
