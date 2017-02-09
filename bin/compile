@@ -80,7 +80,7 @@ apt-get $APT_OPTIONS -y --force-yes -d install --reinstall apt-transport-https |
 apt-get $APT_OPTIONS -y --force-yes -d install --reinstall software-properties-common | indent
 apt-get $APT_OPTIONS -y --force-yes -d install --reinstall ca-certificates | indent
 
-curl https://yum.dockerproject.org/gpg| apt-key add - -C $BUILD_DIR
+curl https://yum.dockerproject.org/gpg -s -o - | apt-key add - -C $BUILD_DIR
 # curl $R_BINARIES -s -o - | tar xzf - -C $BUILD_DIR
 apt-get $APT_OPTIONS -y --force-yes -d install --reinstall software-properties-common | indent
 
