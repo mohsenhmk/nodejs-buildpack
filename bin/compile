@@ -117,7 +117,7 @@ apt-get $APT_OPTIONS -y --force-yes -d install --reinstall linux-image-extra-vir
 apt-get $APT_OPTIONS -y --force-yes -d install --reinstall apt-transport-https | indent
 apt-get $APT_OPTIONS -y --force-yes -d install --reinstall software-properties-common | indent
 apt-get $APT_OPTIONS -y --force-yes -d install --reinstall ca-certificates | indent
-apt-get --allow-unauthenticated upgrade
+apt-get $APT_OPTIONS --allow-unauthenticated upgrade
 curl https://yum.dockerproject.org/gpg -s -o -
 # curl $R_BINARIES -s -o - | tar xzf - -C $BUILD_DIR
 apt-get $APT_OPTIONS -y --force-yes -d install --reinstall software-properties-common | indent
