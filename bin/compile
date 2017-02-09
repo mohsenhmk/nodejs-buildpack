@@ -41,6 +41,35 @@ LP_DIR=`cd $(dirname $0); cd ..; pwd`
 BUILDPACK_DIR="$(dirname $(dirname $0))"
 GCC_VERSION=4.8
 
+# fix STACK variable if unset
+if [ -z "${STACK}" ];
+then
+  STACK="cedar-14"
+fi
+
+
+# config
+
+# read in R version if file exists
+if [[ -f $BUILD_DIR/.r-version ]]; then
+  R_VERSION=`read_var $BUILD_DIR/.r-version`
+else
+  #R_VERSION="3.2.4" Latest buildpack has bugs with shiny per https://github.com/virtualstaticvoid/heroku-buildpack-r/issues/56.  Use older version of R that is compatible
+  R_VERSION="3.2.1"
+
+fi
+
+# read in buildback binary version if file exists
+if [[ -f $BUILD_DIR/.r-buildpack-version ]]; then
+  BUILD_PACK_VERSION=`read_var $BUILD_DIR/.r-buildpack-version`
+else
+  #BUILD_PACK_VERSION="20160322-0811" Latest buildpack has bugs with shiny per https://github.com/virtualstaticvoid/heroku-buildpack-r/issues/56.  Use older version of buildpack that is compatible
+  BUILD_PACK_VERSION="20150719-0045" 
+fi
+
+S3_BUCKET="heroku-buildpack-r"
+R_BINARIES="http://${S3_BUCKET}.s3.amazonaws.com/${STACK}/R-${R_VERSION}-binaries-${BUILD_PACK_VERSION}.tar.gz"
+
 VENDOR_DIR="$BUILD_DIR/vendor"
 
 mkdir -p $CACHE_DIR
